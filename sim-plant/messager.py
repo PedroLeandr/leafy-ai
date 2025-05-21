@@ -71,8 +71,14 @@ def main():
     global menu_ativo
 
     args = sys.argv[1:]
+    modo_headless = False
+
+    if '--headless' in args:
+        modo_headless = True
+        args.remove('--headless')
+
     if not args:
-        print('Uso: python main.py [alface|tomate|all]')
+        print('Uso: python main.py [alface|tomate|all] [--headless]')
         return
 
     targets = []
@@ -91,9 +97,10 @@ def main():
     plants_dict = {p.name: p for p in targets}
 
     print(f"Simulador iniciado para: {', '.join(plants_dict.keys())}.")
-    print("Pressiona 'p' para abrir o menu de ações a qualquer momento.")
 
-    threading.Thread(target=key_listener, args=(plants_dict,), daemon=True).start()
+    if not modo_headless:
+        print("Pressiona 'p' para abrir o menu de ações a qualquer momento.")
+        threading.Thread(target=key_listener, args=(plants_dict,), daemon=True).start()
 
     try:
         while True:
@@ -101,6 +108,9 @@ def main():
                 for p in targets:
                     p.status()
                 print('-'*60)
+            if modo_headless:
+                # Se estiver em modo headless, executa uma vez e sai
+                break
             time.sleep(1)
     except KeyboardInterrupt:
         print('Simulação terminada.')

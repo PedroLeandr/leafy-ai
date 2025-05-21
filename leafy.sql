@@ -3,9 +3,9 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Tempo de geração: 20-Maio-2025 às 21:47
--- Versão do servidor: 9.3.0
--- versão do PHP: 8.0.30
+-- Tempo de geração: 21-Maio-2025 às 03:31
+-- Versão do servidor: 9.2.0
+-- versão do PHP: 8.2.12
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 START TRANSACTION;
@@ -38,7 +38,7 @@ CREATE TABLE `plants` (
   `umidMax` smallint DEFAULT NULL,
   `lumMin` int DEFAULT NULL,
   `lumMax` int DEFAULT NULL
-) ;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 --
 -- Extraindo dados da tabela `plants`
@@ -56,6 +56,56 @@ INSERT INTO `plants` (`id`, `name`, `waterMin`, `waterMax`, `tempMin`, `tempMax`
 (9, 'Cenoura', 60, 80, 16.0, 24.0, 50, 70, 10000, 20000),
 (10, 'Cebolinha', 50, 75, 15.0, 25.0, 60, 80, 5000, 15000);
 
+-- --------------------------------------------------------
+
+--
+-- Estrutura da tabela `users`
+--
+
+CREATE TABLE `users` (
+  `id` int NOT NULL,
+  `telegramId` bigint NOT NULL,
+  `name` varchar(255) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+--
+-- Extraindo dados da tabela `users`
+--
+
+INSERT INTO `users` (`id`, `telegramId`, `name`) VALUES
+(1, 5830766951, 'Pedro_Leandr');
+
+-- --------------------------------------------------------
+
+--
+-- Estrutura da tabela `vases`
+--
+
+CREATE TABLE `vases` (
+  `id` varchar(255) NOT NULL,
+  `plantId` int DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+--
+-- Extraindo dados da tabela `vases`
+--
+
+INSERT INTO `vases` (`id`, `plantId`) VALUES
+('LEAFY-119540', NULL),
+('LEAFY-674121', NULL),
+('LEAFY-991714', NULL);
+
+-- --------------------------------------------------------
+
+--
+-- Estrutura da tabela `vases_users`
+--
+
+CREATE TABLE `vases_users` (
+  `vaseId` varchar(255) NOT NULL,
+  `userId` int NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
 --
 -- Índices para tabelas despejadas
 --
@@ -68,6 +118,25 @@ ALTER TABLE `plants`
   ADD UNIQUE KEY `id` (`id`);
 
 --
+-- Índices para tabela `users`
+--
+ALTER TABLE `users`
+  ADD PRIMARY KEY (`id`);
+
+--
+-- Índices para tabela `vases`
+--
+ALTER TABLE `vases`
+  ADD PRIMARY KEY (`id`);
+
+--
+-- Índices para tabela `vases_users`
+--
+ALTER TABLE `vases_users`
+  ADD PRIMARY KEY (`vaseId`,`userId`),
+  ADD KEY `userId` (`userId`);
+
+--
 -- AUTO_INCREMENT de tabelas despejadas
 --
 
@@ -75,7 +144,24 @@ ALTER TABLE `plants`
 -- AUTO_INCREMENT de tabela `plants`
 --
 ALTER TABLE `plants`
-  MODIFY `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT;
+  MODIFY `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
+
+--
+-- AUTO_INCREMENT de tabela `users`
+--
+ALTER TABLE `users`
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+
+--
+-- Restrições para despejos de tabelas
+--
+
+--
+-- Limitadores para a tabela `vases_users`
+--
+ALTER TABLE `vases_users`
+  ADD CONSTRAINT `vases_users_ibfk_1` FOREIGN KEY (`vaseId`) REFERENCES `vases` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
+  ADD CONSTRAINT `vases_users_ibfk_2` FOREIGN KEY (`userId`) REFERENCES `users` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;

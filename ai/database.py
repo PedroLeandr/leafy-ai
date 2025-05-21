@@ -1,39 +1,31 @@
+import random
 import mysql.connector
-import os
-from dotenv import load_dotenv
 
-# Carregar as variáveis de ambiente do arquivo .env
-load_dotenv()
-
-# Acessar as variáveis de ambiente do .env
-DB_HOST = os.getenv('DB_HOST')
-DB_USER = os.getenv('DB_USER')
-DB_PASSWORD = os.getenv('DB_PASSWORD')
-DB_NAME = os.getenv('DB_NAME')
-
-
-# Conectar à base de dados MySQL local
-conn = mysql.connector.connect(
-    host=DB_HOST,
-    user=DB_USER,
-    password=DB_PASSWORD,
-    database=DB_NAME
+con = mysql.connector.connect(
+    host="localhost",
+    user="root",
+    password="0000",
+    database="leafy"
 )
+cursor = con.cursor()
 
-# Criar um cursor para executar comandos SQL
-cursor = conn.cursor()
+def insert_vase():
+    uuid = f"LEAFY-{random.randint(0, 999999):06d}"
+    cursor.execute('INSERT INTO vases (id) VALUES (%s)', (uuid,))
+    con.commit()
+    return uuid
 
-# Função para buscar informações sobre uma planta
-async def get_info(plant_name):
-    cursor.execute(''' 
-        SELECT * FROM plantas WHERE nome = %s;
-    ''', (plant_name,))
-    
-    result = cursor.fetchall()
-    
-    # Fechar a conexão e o cursor após a consulta
-    conn.commit()
-    
-    # Retorna os resultados encontrados
-    return result
+def insert_user(user_id, user_name):
+    cursor.execute('INSERT INTO users (telegramId, name) VALUES (%s, %s)', (user_id, user_name))
+    con.commit()
+    return user_id
 
+def check_if_user_exist(user_id,):
+    cursor.execute('SELECT * FROM users WHERE id = %s', (user_id,))
+    result = cursor.fetchone()
+    if result:
+        print("User already exists")
+        return True
+    else:
+        print("User does not exist")
+        return False

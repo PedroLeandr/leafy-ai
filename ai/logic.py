@@ -1,5 +1,5 @@
 import os
-from dotenv import load_dotenv
+# from dotenv import load_dotenv
 from nlp_logic import interpret_intent
 from sensor import get_umidade_percentagem, get_temperatura, get_luminosidade
 from database import get_info
