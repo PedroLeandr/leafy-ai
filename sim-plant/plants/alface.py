@@ -1,7 +1,7 @@
-from plant import Plant
+
 from db import cursor
 
-class Alface(Plant):
+class Alface():
     def __init__(self):
         cursor.execute(
             "SELECT waterMin, waterMax, tempMin, tempMax, umidMin, umidMax, lumMin, lumMax FROM plants WHERE name = 'alface'"
@@ -17,4 +17,4 @@ class Alface(Plant):
                 lum_min=lum_min, lum_max=lum_max
             )
         else:
-            raise ValueError("Tomate não encontrado na base de dados")
+            raise ValueError("Alface não encontrado na base de dados")

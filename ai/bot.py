@@ -4,9 +4,11 @@
 
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, ContextTypes, filters, CallbackQueryHandler
-# from logic import check_plant_state, answer_question
+
+
+from logic import check_plant_state, answer_question
 # from database import get_info
-# from nlp_logic import extract_plant_name, interpret_intent
+from nlp_logic import interpret_intent
 # from config import mudar_planta, config
 # from dotenv import load_dotenv, set_key
 import os
@@ -15,7 +17,7 @@ import os
 
 
 
-from database import check_if_user_exist, insert_user
+from database import check_if_user_exist, insert_user, user_name, check_owner_vases, check_empty_vases, check_busy_vases, insert_vase_owner, insert_vase
 
 
 
@@ -105,17 +107,24 @@ TOKEN = "7614900129:AAGzSUsWyWfa972YtF80ueibs61dwvmhPuU"
 
 
 
-
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = update.effective_user.id
     print(f"ID do utilizador: {user_id}")
 
     if check_if_user_exist(user_id):
-        await update.message.reply_text("Olá! Você já está cadastrado. Como posso te ajudar?")
+        await update.message.reply_text(f"Olá! Você já está cadastrado {user_name}. Como posso te ajudar?")
     else:
         context.user_data["awaiting_name"] = True
         context.user_data["user_id"] = user_id
         await update.message.reply_text("Olá! Você é novo aqui. Qual é o seu nome?")
+
+
+async def vasos(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    owner_vases = check_owner_vases(user_id)
+
+    await update.message.reply_text(owner_vases)
+    
+
 
 
 async def answer(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -130,10 +139,6 @@ async def answer(update: Update, context: ContextTypes.DEFAULT_TYPE):
         else:
             await update.message.reply_text("Algo deu errado ao cadastrar você. Tente novamente.")
         return
-
-    # aqui podes tratar outras mensagens, tipo perguntas etc.
-    await update.message.reply_text("Comando não reconhecido. Use /start para começar.")
-
 
 
 

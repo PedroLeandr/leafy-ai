@@ -4,7 +4,6 @@ from nlp_logic import interpret_intent
 from sensor import get_umidade_percentagem, get_temperatura, get_luminosidade
 from database import get_info
 
-load_dotenv()
 
 async def check_plant_state(plant_name=None):
     # DEBUG: entrada da função
@@ -16,8 +15,6 @@ async def check_plant_state(plant_name=None):
     # Obter dados da base
     plant = await get_info(plant_name)
     # DEBUG: conteúdo retornado de get_info
-   
-
     if not plant or not isinstance(plant, (list, tuple)) or len(plant) == 0:
        
         return "❌ Dados da planta não foram encontrados corretamente na base de dados."
