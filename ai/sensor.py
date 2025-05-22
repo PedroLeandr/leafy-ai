@@ -27,24 +27,12 @@
 #             if len(valores) == 3:
 #                 try:
 #                     umidadePercentagem = float(valores[0])
-#                     temperatura = float(valores[1])
-#                     luminosidade = float(valores[2])
-#                     print(
-#                         f"Umidade: {umidadePercentagem}% | "
-#                         f"Temperatura: {temperatura}°C | "
-#                         f"Luminosidade: {luminosidade} lux"
-#                     )
+#                     print(f"Umidade: {umidadePercentagem}% | ")
 #                 except ValueError:
 #                     print("Erro ao converter os valores da linha:", linha)
 
 # def get_umidade_percentagem():
 #     return umidadePercentagem
-
-# def get_temperatura():
-#     return temperatura
-
-# def get_luminosidade():
-#     return luminosidade
 
 # def iniciar_thread_sensor():
 #     thread = threading.Thread(target=ler_dados, daemon=True)

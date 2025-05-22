@@ -37,12 +37,8 @@ def interpret_intent(question: str) -> str:
     for token in doc:
         if token.lemma_ in ["estado", "status", "como", "bem", "saúde", "condição", "planta"]:
             return "status_planta"
-        elif token.lemma_ in ["temperatura", "calor", "quente"]:
-            return "temperatura"
         elif token.lemma_ in ["umidade", "úmido", "seco", "água", "molhada"]:
             return "umidade"
-        elif token.lemma_ in ["luz", "iluminação", "claro", "brilho"]:
-            return "luminosidade"
     
     return "desconhecido"
 
