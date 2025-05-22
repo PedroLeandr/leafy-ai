@@ -1,5 +1,10 @@
 @echo off
 
+
+python -m venv venv
+
+.\venv\Scripts\activate
+
 REM Atualizar pip
 python.exe -m pip install --upgrade pip
 
