@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Tempo de geração: 21-Maio-2025 às 03:31
+-- Tempo de geração: 22-Maio-2025 às 20:03
 -- Versão do servidor: 9.2.0
 -- versão do PHP: 8.2.12
 
@@ -73,7 +73,8 @@ CREATE TABLE `users` (
 --
 
 INSERT INTO `users` (`id`, `telegramId`, `name`) VALUES
-(1, 5830766951, 'Pedro_Leandr');
+(1, 5830766951, 'Pedro_Leandr'),
+(2, 7521222902, 'Bernardo');
 
 -- --------------------------------------------------------
 
@@ -91,7 +92,7 @@ CREATE TABLE `vases` (
 --
 
 INSERT INTO `vases` (`id`, `plantId`) VALUES
-('LEAFY-119540', NULL),
+('LEAFY-119540', 5),
 ('LEAFY-674121', NULL),
 ('LEAFY-991714', NULL);
 
@@ -105,6 +106,13 @@ CREATE TABLE `vases_users` (
   `vaseId` varchar(255) NOT NULL,
   `userId` int NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+--
+-- Extraindo dados da tabela `vases_users`
+--
+
+INSERT INTO `vases_users` (`vaseId`, `userId`) VALUES
+('LEAFY-119540', 1);
 
 --
 -- Índices para tabelas despejadas
@@ -150,7 +158,7 @@ ALTER TABLE `plants`
 -- AUTO_INCREMENT de tabela `users`
 --
 ALTER TABLE `users`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- Restrições para despejos de tabelas

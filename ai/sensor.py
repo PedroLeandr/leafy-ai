@@ -53,26 +53,37 @@
 # # Removida a chamada direta a iniciar_thread_sensor() daqui,
 # # para evitar duplicar threads — o bot é que inicia a thread.
 
+
+# --------------------------------------------------------------------------------------
+
+
 import subprocess
 import sys
 import os
 import json
 
-venv_python = os.path.join(os.path.dirname(sys.executable), 'python.exe')
+# venv_python = os.path.join(os.path.dirname(sys.executable), 'python.exe')
 
-subprocess.run([
-    venv_python,
-    os.path.abspath(os.path.join(__file__, '..', '..', 'sim-plant', 'messager.py')),
-    'alface',
-    '--headless'
-])
+# subprocess.run([
+#     venv_python,
+#     os.path.abspath(os.path.join(__file__, '..', '..', 'sim-plant', 'main.py')),
+#     'LEAFY-119540',
+#     '--headless'
+# ])
 
-alface = os.path.abspath(os.path.join(__file__, '..', '..', 'sim-plant', 'states', 'alface.json'))
+vaseid = 'LEAFY-119540'
 
-with open(alface, 'r', encoding='utf-8') as f:
+vase = os.path.abspath(os.path.join(__file__, '..', '..', 'sim-plant', 'states', 'LEAFY-119540.json'))
+
+with open(vase, 'r', encoding='utf-8') as f:
     dados = json.load(f)
     humidade = dados['water']
 
+
+umidadePercentagem = dados['water']
+
+def get_umidade_percentagem():
+    return umidadePercentagem
+
 print(dados)
 print(humidade)
-

@@ -1,7 +1,7 @@
 import os
 # from dotenv import load_dotenv
 from nlp_logic import interpret_intent
-from sensor import get_umidade_percentagem, get_temperatura, get_luminosidade
+from sensor import get_umidade_percentagem
 from database import get_info
 
 
@@ -47,51 +47,18 @@ async def check_plant_state(plant_name=None):
         umid_status = "✅"
     status.append(f"💧 Umidade: {umid}% (Ideal: {Min_Humidity}–{Max_Humidity}%) {umid_status}")
 
-    temp = get_temperatura()
-    if temp is None:
-        return "❌ Não foi possível obter o valor de temperatura do sensor."
-    if temp < Min_Temperature:
-        temp_status = "❄️ Baixa"
-    elif temp > Max_Temperature:
-        temp_status = "🔥 Alta"
-    else:
-        temp_status = "✅"
-    status.append(f"🌡️ Temperatura: {temp}°C (Ideal: {Min_Temperature}–{Max_Temperature}°C) {temp_status}")
-
-    luz = get_luminosidade()
-    if luz is None:
-        return "❌ Não foi possível obter o valor de luminosidade do sensor."
-    if luz < Min_Light:
-        luz_status = "🔅 Baixa"
-    elif luz > Max_Light:
-        luz_status = "🔆 Alta"
-    else:
-        luz_status = "✅"
-    status.append(f"💡 Luminosidade: {luz} lux (Ideal: {Min_Light}–{Max_Light} lux) {luz_status}")
-
     return "\n".join(status)
 
 
 def answer_question(question: str) -> str:
-    from sensor import get_umidade_percentagem, get_temperatura, get_luminosidade
 
     category = interpret_intent(question)
-    temp = get_temperatura()
     umid = get_umidade_percentagem()
-    luz = get_luminosidade()
 
-    if category == "temperatura":
-        if temp is None:
-            return "❌ Não foi possível obter a temperatura."
-        return f"🌡️ Temperatura atual: {temp}°C"
-    elif category == "umidade":
+    if category == "umidade":
         if umid is None:
             return "❌ Não foi possível obter a umidade."
         return f"💧 Umidade atual: {umid}%"
-    elif category == "luminosidade":
-        if luz is None:
-            return "❌ Não foi possível obter a luminosidade."
-        return f"💡 Luminosidade atual: {luz} lux"
     else:
         return (
             "❓ Desculpe, não entendi sua pergunta. "

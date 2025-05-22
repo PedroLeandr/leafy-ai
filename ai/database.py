@@ -23,9 +23,6 @@ def check_if_user_exist(user_id,):
     else:
         print("User does not exist")
         return False
-    
-    user_id = result[1]
-    user_name = result[2]
 
 def insert_user(user_id, user_name):
     cursor.execute('INSERT INTO users (telegramId, name) VALUES (%s, %s)', (user_id, user_name))
@@ -70,3 +67,13 @@ def insert_vase_owner(vase_id, user_id):
     con.commit()
     return vase_id
 
+def get_info(plant_name):
+    cursor.execute('SELECT * FROM plants WHERE name = %s', (plant_name,))
+    result = cursor.fetchone()
+
+    if result:
+        # Retorna os dados da planta como dicionário
+        columns = [desc[0] for desc in cursor.description]
+        return dict(zip(columns, result))
+    else:
+        return None

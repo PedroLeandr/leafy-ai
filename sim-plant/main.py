@@ -20,13 +20,8 @@ except ImportError:
             termios.tcsetattr(fd, termios.TCSADRAIN, old)
         return ch.lower()
 
-from plants.alface import Alface
-from plants.tomate import Tomate
-
-PLANTS = {
-    'alface': Alface,
-    'tomate': Tomate
-}
+from db import cursor
+from plants.vase import DatabasePlant
 
 def menu(plants_dict):
     global menu_ativo
@@ -40,20 +35,20 @@ def menu(plants_dict):
 
     escolha = input("Escolha: ").strip()
     if escolha == '1':
-        nome = input("Nome da planta: ").strip().lower()
-        if nome in plants_dict:
-            plants_dict[nome].water_plant()
+        vaso_id = input("ID do vaso: ").strip().upper()
+        if vaso_id in plants_dict:
+            plants_dict[vaso_id].water_plant()
         else:
-            print("Planta não encontrada.")
+            print("Vaso não encontrado.")
     elif escolha == '2':
         for p in plants_dict.values():
             p.water_plant()
     elif escolha == '3':
-        nome = input("Nome da planta: ").strip().lower()
-        if nome in plants_dict:
-            plants_dict[nome].status()
+        vaso_id = input("ID do vaso: ").strip().upper()
+        if vaso_id in plants_dict:
+            plants_dict[vaso_id].status()
         else:
-            print("Planta não encontrada.")
+            print("Vaso não encontrado.")
     elif escolha == '4':
         print("Voltando à simulação...")
     else:
@@ -72,25 +67,41 @@ def main():
 
     args = sys.argv[1:]
     if not args:
-        print('Uso: python main.py [alface|tomate|all]')
+        print('Uso: python main.py [id_do_vaso_1 id_do_vaso_2 ... | all]')
         return
 
-    targets = []
-    if 'all' in args:
-        targets = [cls() for cls in PLANTS.values()]
+    if 'all' in [a.lower() for a in args]:
+        cursor.execute("SELECT id FROM vases")
+        vaso_ids = [row[0] for row in cursor.fetchall()]
     else:
-        for name in args:
-            if name in PLANTS:
-                targets.append(PLANTS[name]())
+        vaso_ids = [arg.strip().upper() for arg in args]
+
+    targets = []
+
+    for vaso_id in vaso_ids:
+        cursor.execute("SELECT plantId FROM vases WHERE id = %s", (vaso_id,))
+        result = cursor.fetchone()
+        if result:
+            plant_id = result[0]
+            cursor.execute("SELECT name FROM plants WHERE id = %s", (plant_id,))
+            plant_result = cursor.fetchone()
+            if plant_result:
+                plant_name = plant_result[0]
+                try:
+                    targets.append((vaso_id, DatabasePlant(plant_name, vaso_id)))
+                except ValueError as e:
+                    print(e)
             else:
-                print(f'Planta desconhecida: {name}')
+                print(f"Planta com ID {plant_id} não encontrada.")
+        else:
+            print(f"Vaso com ID {vaso_id} não encontrado.")
 
     if not targets:
         return
 
-    plants_dict = {p.name: p for p in targets}
+    plants_dict = {vid: plant for vid, plant in targets}
 
-    print(f"Simulador iniciado para: {', '.join(plants_dict.keys())}.")
+    print(f"Simulador iniciado para vasos: {', '.join(plants_dict.keys())}.")
     print("Pressiona 'p' para abrir o menu de ações a qualquer momento.")
 
     threading.Thread(target=key_listener, args=(plants_dict,), daemon=True).start()
@@ -98,7 +109,7 @@ def main():
     try:
         while True:
             if not menu_ativo:
-                for p in targets:
+                for p in plants_dict.values():
                     p.status()
                 print('-'*60)
             time.sleep(1)

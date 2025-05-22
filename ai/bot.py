@@ -6,9 +6,9 @@ from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, ContextTypes, filters, CallbackQueryHandler
 
 
-# from logic import check_plant_state, answer_question
-# from database import get_info
-# from nlp_logic import interpret_intent
+from logic import check_plant_state, answer_question
+from database import get_info
+from nlp_logic import interpret_intent, extract_plant_name
 # from config import mudar_planta, config
 # from dotenv import load_dotenv, set_key
 import os
@@ -25,12 +25,12 @@ from database import check_if_user_exist, insert_user, user_name, check_owner_va
 
 TOKEN = "7614900129:AAGzSUsWyWfa972YtF80ueibs61dwvmhPuU"
 
-# def create_confirmation_buttons(plant_name):
-#     keyboard = [
-#         [InlineKeyboardButton("Sim", callback_data=f"confirm_{plant_name}")],
-#         [InlineKeyboardButton("Não", callback_data="cancelar")]
-#     ]
-#     return InlineKeyboardMarkup(keyboard)
+def create_confirmation_buttons(plant_name):
+    keyboard = [
+        [InlineKeyboardButton("Sim", callback_data=f"confirm_{plant_name}")],
+        [InlineKeyboardButton("Não", callback_data="cancelar")]
+    ]
+    return InlineKeyboardMarkup(keyboard)
 
 # def check_if_configured():
 #     required_keys = [
@@ -51,52 +51,52 @@ TOKEN = "7614900129:AAGzSUsWyWfa972YtF80ueibs61dwvmhPuU"
 #         context.user_data["plant"] = plant_name 
 #         await update.message.reply_text(f"Olá! A configuração da sua planta '{plant_name}' já está completa. Como posso te ajudar?")
 
-# async def answer(update: Update, context: ContextTypes.DEFAULT_TYPE):
-#     msg = update.message.text.strip()
+async def answer(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    msg = update.message.text.strip()
 
-#     if context.user_data.get("awaiting_plant"):
-#         plant_name = extract_plant_name(msg)
+    if context.user_data.get("awaiting_plant"):
+        plant_name = extract_plant_name(msg)
 
-#         if plant_name:
-#             plant_data = await get_info(plant_name)
-#             if plant_data:
-#                 context.user_data["plant_candidate"] = plant_name
-#                 context.user_data["awaiting_plant"] = False
-#                 await update.message.reply_text(
-#                     f"Você quer dizer '{plant_name}'?",
-#                     reply_markup=create_confirmation_buttons(plant_name)
-#                 )
-#             else:
-#                 await update.message.reply_text(f"❌ Não encontrei a planta '{plant_name}' na minha base de dados MySQL. Tente novamente.")
-#         else:
-#             await update.message.reply_text("❌ Não consegui identificar o nome da planta na sua mensagem. Por favor, envie apenas o nome.")
-#         return
+        if plant_name:
+            plant_data = await get_info(plant_name)
+            if plant_data:
+                context.user_data["plant_candidate"] = plant_name
+                context.user_data["awaiting_plant"] = False
+                await update.message.reply_text(
+                    f"Você quer dizer '{plant_name}'?",
+                    reply_markup=create_confirmation_buttons(plant_name)
+                )
+            else:
+                await update.message.reply_text(f"❌ Não encontrei a planta '{plant_name}' na minha base de dados MySQL. Tente novamente.")
+        else:
+            await update.message.reply_text("❌ Não consegui identificar o nome da planta na sua mensagem. Por favor, envie apenas o nome.")
+        return
 
-#     intent = interpret_intent(msg)
+    intent = interpret_intent(msg)
 
-#     if intent == "status_planta":
-#         planta = context.user_data.get("plant")
-#         response = await check_plant_state(planta)
-#     elif intent in ["temperatura", "umidade", "luminosidade"]:
-#         response = answer_question(msg)
-#     else:
-#         response = "❓ Desculpe, não entendi sua pergunta. Pergunte algo como 'como está minha planta?' ou 'qual é a temperatura?'"
+    if intent == "status_planta":
+        planta = context.user_data.get("plant")
+        response = await check_plant_state(planta)
+    elif intent in ["temperatura", "umidade", "luminosidade"]:
+        response = answer_question(msg)
+    else:
+        response = "❓ Desculpe, não entendi sua pergunta. Pergunte algo como 'como está minha planta?' ou 'qual é a temperatura?'"
 
-#     await update.message.reply_text(response)
+    await update.message.reply_text(response)
 
-# async def button(update: Update, context: ContextTypes.DEFAULT_TYPE):
-#     query = update.callback_query
-#     await query.answer()
-#     callback_data = query.data
+async def button(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    query = update.callback_query
+    await query.answer()
+    callback_data = query.data
 
-#     if callback_data.startswith("confirm_"):
-#         plant_name = callback_data.split("confirm_")[1]
-#         mudar_planta(plant_name)
-#         context.user_data["plant"] = plant_name
-#         await query.edit_message_text(f"Planta '{plant_name}' configurada com sucesso! ✅")
-#     elif callback_data == "cancelar":
-#         context.user_data["awaiting_plant"] = True
-#         await query.edit_message_text("Ação cancelada. Por favor, diga novamente o nome da planta.")
+    if callback_data.startswith("confirm_"):
+        plant_name = callback_data.split("confirm_")[1]
+        # mudar_planta(plant_name)
+        context.user_data["plant"] = plant_name
+        await query.edit_message_text(f"Planta '{plant_name}' configurada com sucesso! ✅")
+    elif callback_data == "cancelar":
+        context.user_data["awaiting_plant"] = True
+        await query.edit_message_text("Ação cancelada. Por favor, diga novamente o nome da planta.")
 
 
 
@@ -122,19 +122,6 @@ async def vasos(update: Update, context: ContextTypes.DEFAULT_TYPE):
     owner_vases = check_owner_vases(user_id)
 
     await update.message.reply_text(owner_vases)
-    
-async def answer(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    if context.user_data.get("awaiting_name"):
-        user_name = update.message.text.strip()
-        user_id = context.user_data.get("user_id")
-
-        if user_id and user_name:
-            insert_user(user_id, user_name)
-            context.user_data["awaiting_name"] = False
-            await update.message.reply_text(f"Obrigado, {user_name}! Você foi cadastrado com sucesso. Como posso te ajudar?")
-        else:
-            await update.message.reply_text("Algo deu errado ao cadastrar você. Tente novamente.")
-        return
 
 def main():
     app = ApplicationBuilder().token(TOKEN).build()
