@@ -6,9 +6,9 @@ from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, ContextTypes, filters, CallbackQueryHandler
 
 
-from logic import check_plant_state, answer_question
+# from logic import check_plant_state, answer_question
 # from database import get_info
-from nlp_logic import interpret_intent
+# from nlp_logic import interpret_intent
 # from config import mudar_planta, config
 # from dotenv import load_dotenv, set_key
 import os
@@ -118,15 +118,11 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
         context.user_data["user_id"] = user_id
         await update.message.reply_text("Olá! Você é novo aqui. Qual é o seu nome?")
 
-
 async def vasos(update: Update, context: ContextTypes.DEFAULT_TYPE):
     owner_vases = check_owner_vases(user_id)
 
     await update.message.reply_text(owner_vases)
     
-
-
-
 async def answer(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if context.user_data.get("awaiting_name"):
         user_name = update.message.text.strip()
@@ -139,12 +135,6 @@ async def answer(update: Update, context: ContextTypes.DEFAULT_TYPE):
         else:
             await update.message.reply_text("Algo deu errado ao cadastrar você. Tente novamente.")
         return
-
-
-
-
-
-
 
 def main():
     app = ApplicationBuilder().token(TOKEN).build()

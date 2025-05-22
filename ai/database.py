@@ -60,6 +60,7 @@ def check_owner_vases(user_id):
     cursor.execute('SELECT * FROM vases_users WHERE userId = %s', (user_id,))
     result = cursor.fetchone()
     if result:
+        print(result)
         return result[1]
     else:
         return None
@@ -69,8 +70,3 @@ def insert_vase_owner(vase_id, user_id):
     con.commit()
     return vase_id
 
-
-print(check_empty_vases())
-print(check_busy_vases())
-print(check_vase_owner("LEAFY-119540"))
-print(insert_vase_owner("LEAFY-119540", 1))

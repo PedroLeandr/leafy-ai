@@ -1,18 +1,8 @@
 @echo off
-
-
 python -m venv venv
-
-.\venv\Scripts\activate
-
-REM Atualizar pip
-python.exe -m pip install --upgrade pip
-
-REM Instalar pacotes Python do requirements.txt
+call .\venv\Scripts\activate
+python -m pip install --upgrade pip
 pip install -r requirements.txt
-
-REM Configurar banco de dados MySQL
 mysql -u root -p0000 -e "CREATE DATABASE IF NOT EXISTS leafy;"
 mysql -u root -p0000 leafy < leafy.sql
-
 pause

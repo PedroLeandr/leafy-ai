@@ -1,7 +1,11 @@
+import sys
+import os
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
+from plant import Plant
 from db import cursor
 
-class Alface():
+class Alface(Plant):
     def __init__(self):
         cursor.execute(
             "SELECT waterMin, waterMax, tempMin, tempMax, umidMin, umidMax, lumMin, lumMax FROM plants WHERE name = 'alface'"
