@@ -1,77 +1,67 @@
-# # sensor.py
+import serial
+import time
+import threading
+import logging
 
-# import serial
-# import os
-# from dotenv import load_dotenv
-# import threading
+logging.basicConfig(
+    level=logging.DEBUG,
+    format='[%(asctime)s] [%(levelname)s] %(message)s',
+    datefmt='%H:%M:%S'
+)
 
-# load_dotenv()
+porta = "COM3"
+baud_rate = 9600
+umidadePercentagem = None
 
-# porta = os.getenv('PORTA_SERIAL')
-# baud_rate = int(os.getenv('BAUD_RATE'))
+try:
+    arduino = serial.Serial(porta, baud_rate)
+    time.sleep(2)
+    logging.info(f"Porta serial {porta} aberta com sucesso.")
+except serial.SerialException as e:
+    logging.error(f"Erro ao abrir a porta serial: {e}")
+    arduino = None
 
-# umidadePercentagem = None
-# temperatura = None
-# luminosidade = None
+def mapear_para_percentagem(valor):
+    logging.debug(f"Mapeando valor bruto {valor} para percentagem.")
+    return valor * 100 / 1023
 
-# def ler_dados():
-#     global umidadePercentagem, temperatura, luminosidade
-#     arduino = serial.Serial(porta, baud_rate)
-#     print("A ler dados da serial\n")
-    
-#     while True:
-#         linha = arduino.readline().decode('utf-8').strip()
-#         if linha.startswith('[') and linha.endswith(']'):
-#             linha = linha[1:-1]
-#             valores = linha.split(",")
-#             if len(valores) == 3:
-#                 try:
-#                     umidadePercentagem = float(valores[0])
-#                     print(f"Umidade: {umidadePercentagem}% | ")
-#                 except ValueError:
-#                     print("Erro ao converter os valores da linha:", linha)
+def tocar_audio():
+    if arduino and arduino.is_open:
+        logging.info("Tocando áudio via Arduino.")
+        arduino.write(b'p')
+    else:
+        logging.warning("Tentativa de tocar áudio, mas Arduino não está disponível ou fechado.")
 
-# def get_umidade_percentagem():
-#     return umidadePercentagem
+def ler_dados():
+    global umidadePercentagem
+    if not arduino:
+        logging.error("Arduino não está disponível.")
+        return
 
-# def iniciar_thread_sensor():
-#     thread = threading.Thread(target=ler_dados, daemon=True)
-#     thread.start()
-
-# # Removida a chamada direta a iniciar_thread_sensor() daqui,
-# # para evitar duplicar threads — o bot é que inicia a thread.
-
-
-# --------------------------------------------------------------------------------------
-
-
-import subprocess
-import sys
-import os
-import json
-
-# venv_python = os.path.join(os.path.dirname(sys.executable), 'python.exe')
-
-# subprocess.run([
-#     venv_python,
-#     os.path.abspath(os.path.join(__file__, '..', '..', 'sim-plant', 'main.py')),
-#     'LEAFY-119540',
-#     '--headless'
-# ])
-
-vaseid = 'LEAFY-119540'
-
-vase = os.path.abspath(os.path.join(__file__, '..', '..', 'sim-plant', 'states', 'LEAFY-119540.json'))
-
-with open(vase, 'r', encoding='utf-8') as f:
-    dados = json.load(f)
-    humidade = dados['water']
-
-
-umidadePercentagem = dados['water']
+    logging.info("Iniciando leitura da serial.")
+    while True:
+        try:
+            linha = arduino.readline().decode('utf-8').strip()
+            logging.debug(f"Linha recebida: '{linha}'")
+            if linha.isdigit():
+                valor_bruto = int(linha)
+                umidadePercentagem = round(mapear_para_percentagem(valor_bruto), 1)
+                logging.info(f"Umidade: {umidadePercentagem}%")
+            else:
+                logging.debug(f"Entrada ignorada: {linha}")
+        except Exception as e:
+            logging.error(f"Erro na leitura da serial: {e}")
 
 def get_umidade_percentagem():
+    logging.debug(f"Valor atual de umidade solicitado: {umidadePercentagem}")
     return umidadePercentagem
 
-print(dados)
-print(humidade)
+def iniciar_thread_sensor():
+    logging.info("Iniciando thread do sensor.")
+    threading.Thread(target=ler_dados, daemon=True).start()
+
+if __name__ == "__main__":
+    iniciar_thread_sensor()
+    while True:
+        print(get_umidade_percentagem())
+        time.sleep(1)
