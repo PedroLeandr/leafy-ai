@@ -9,7 +9,8 @@ from database import (
     check_if_user_exist, insert_user, user_name,
     get_internal_user_id,
     get_info,
-    check_owner_vases, insert_vase, insert_vase_owner
+    check_owner_vases, insert_vase, insert_vase_owner,
+    get_vase_info as get_info_db
 )
 
 TOKEN = "7614900129:AAGzSUsWyWfa972YtF80ueibs61dwvmhPuU"
@@ -21,36 +22,7 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 def get_vase_info(vase_id, get_umidade_func):
-    from database import con
-    cursor = con.cursor()
-    cursor.execute(
-        "SELECT p.name, p.umidade_min, p.umidade_max FROM plants p "
-        "JOIN vases ON vases.plant_name = p.name "
-        "WHERE vases.id = %s", (vase_id,)
-    )
-    plant = cursor.fetchone()
-
-    if not plant:
-        return f"🪴 Vaso ID: {vase_id}\n❌ Nenhuma planta associada a este vaso."
-
-    plant_name, min_hum, max_hum = plant
-    umid = get_umidade_func()
-    if umid is None:
-        umid_status = "❌ Não foi possível obter umidade."
-    elif umid < min_hum:
-        umid_status = "🔻 Umidade baixa"
-    elif umid > max_hum:
-        umid_status = "🔺 Umidade alta"
-    else:
-        umid_status = "✅ Umidade ideal"
-
-    info_text = (
-        f"🪴 Vaso ID: {vase_id}\n"
-        f"🌿 Planta: {plant_name}\n"
-        f"💧 Umidade atual: {umid}% ({umid_status})\n"
-        f"(Ideal: {min_hum}% - {max_hum}%)"
-    )
-    return info_text
+    return get_info_db(vase_id, get_umidade_func)
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     telegram_id = update.effective_user.id
@@ -96,23 +68,22 @@ async def answer(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     intent = interpret_intent(msg)
     logger.debug(f"Intenção interpretada: {intent}")
+    
     if intent == "status_planta":
         res = await check_plant_state(context.user_data.get("plant"))
+        await update.message.reply_text(res)
     elif intent in ["temperatura", "umidade", "luminosidade"]:
         res = answer_question(msg)
+        await update.message.reply_text(res)
+    elif intent == "mostrar_vasos":
+        telegram_id = update.effective_user.id
+        internal_id = get_internal_user_id(telegram_id)
+        vases = check_owner_vases(internal_id)
+        kb = [[InlineKeyboardButton(str(v), callback_data=f"vase_{v}")] for v in vases]
+        kb.append([InlineKeyboardButton("➕ Adicionar novo vaso", callback_data="add_vase")])
+        await update.message.reply_text("🪴 Seus vasos:", reply_markup=InlineKeyboardMarkup(kb))
     else:
-        res = "❓ Não entendi."
-    await update.message.reply_text(res)
-
-async def vasos(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    telegram_id = update.effective_user.id
-    logger.debug(f"/vasos por {telegram_id}")
-    internal_id = get_internal_user_id(telegram_id)
-    vases = check_owner_vases(internal_id)
-    logger.debug(f"Vasos encontrados: {vases}")
-    kb = [[InlineKeyboardButton(str(v), callback_data=f"vase_{v}")] for v in vases]
-    kb.append([InlineKeyboardButton("➕ Adicionar novo vaso", callback_data="add_vase")])
-    await update.message.reply_text("🪴 Seus vasos:", reply_markup=InlineKeyboardMarkup(kb))
+        await update.message.reply_text("❓ Não entendi.")
 
 async def button(update: Update, context: ContextTypes.DEFAULT_TYPE):
     q = update.callback_query
@@ -133,7 +104,7 @@ async def button(update: Update, context: ContextTypes.DEFAULT_TYPE):
         logger.debug("Confirmação de planta cancelada.")
         await q.edit_message_text("Diga o nome da planta.")
 
-    elif d.startswith("vase_"):
+    elif d.startswith("vase_"):    
         vid = d.split("vase_")[1]
         logger.debug(f"Vaso selecionado: {vid}")
         info_text = get_vase_info(vid, get_umidade_percentagem)
@@ -167,7 +138,6 @@ def main():
     logger.info("Bot iniciado...")
     app = ApplicationBuilder().token(TOKEN).build()
     app.add_handler(CommandHandler("start", start))
-    app.add_handler(CommandHandler("vasos", vasos))
     app.add_handler(CallbackQueryHandler(button))
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, answer))
     app.add_handler(MessageHandler(filters.PHOTO, handle_photo))

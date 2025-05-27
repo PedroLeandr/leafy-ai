@@ -1,6 +1,7 @@
 import spacy
 from fuzzywuzzy import fuzz
 import logging
+from database import load_all_plant_names
 
 logging.basicConfig(
     level=logging.DEBUG,
@@ -10,7 +11,7 @@ logging.basicConfig(
 
 npl = spacy.load("pt_core_news_sm")
 
-PLANT_NAMES = ["rosa", "cacto", "bambu", "violeta", "lirio", "couve-galega"]
+PLANT_NAMES = load_all_plant_names()
 
 def get_closest_match(word, valid_words):
     best_match = None
@@ -46,13 +47,38 @@ def interpret_intent(question: str) -> str:
     question = question.lower()
     doc = npl(question)
     logging.debug(f"Interpretando intenção da pergunta: '{question}'")
-    for token in doc:
-        logging.debug(f"Token: '{token.text}', lema: '{token.lemma_}'")
-        if token.lemma_ in ["estado", "status", "como", "bem", "saúde", "condição", "planta"]:
-            logging.info("Intenção interpretada: status_planta")
-            return "status_planta"
-        elif token.lemma_ in ["umidade", "úmido", "seco", "água", "molhada"]:
-            logging.info("Intenção interpretada: umidade")
-            return "umidade"
+
+    lemmas = {token.lemma_ for token in doc}
+    logging.debug(f"Lemas encontrados: {lemmas}")
+
+    if lemmas & {"estado", "status", "como", "bem", "saúde", "condição", "planta", "vai", "tá", "está", "anda"}:
+        logging.info("Intenção interpretada: status_planta")
+        return "status_planta"
+
+    if lemmas & {"umidade", "úmido", "seco", "água", "molhado", "molhada", "regado", "rega"}:
+        logging.info("Intenção interpretada: umidade")
+        return "umidade"
+
+    if lemmas & {"temperatura", "quente", "frio", "calor", "clima", "ambiente"}:
+        logging.info("Intenção interpretada: temperatura")
+        return "temperatura"
+
+    if lemmas & {"luz", "luminosidade", "claro", "escuro", "iluminação"}:
+        logging.info("Intenção interpretada: luminosidade")
+        return "luminosidade"
+
+    if lemmas & {"vaso", "vasos", "meus", "mostrar", "lista", "ver", "plantas"}:
+        logging.info("Intenção interpretada: mostrar_vasos")
+        return "mostrar_vasos"
+
+    if lemmas & {"nome", "chamar", "identificar", "conhece"} and "planta" in question:
+        logging.info("Intenção interpretada: identificar_planta")
+        return "identificar_planta"
+
+    if lemmas & {"adicionar", "novo", "criar", "registrar"} and "vaso" in question:
+        logging.info("Intenção interpretada: adicionar_vaso")
+        return "adicionar_vaso"
+
     logging.info("Intenção interpretada: desconhecido")
     return "desconhecido"
+

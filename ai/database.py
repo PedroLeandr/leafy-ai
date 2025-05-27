@@ -87,8 +87,8 @@ def get_vase_info(vase_id, get_umidade_percentagem):
         SELECT p.name, p.umidMin, p.umidMax,
                p.tempMin, p.tempMax, p.lumMin, p.lumMax
         FROM plants p
-        JOIN vases_plants vp ON p.id = vp.plant_id
-        WHERE vp.vase_id = %s
+        JOIN vases v ON p.id = v.plantId
+        WHERE v.id = %s
     """
     cursor.execute(query, (vase_id,))
     planta = cursor.fetchone()
@@ -104,16 +104,26 @@ def get_vase_info(vase_id, get_umidade_percentagem):
         umidade = "Desconhecido"
         status_umidade = "❌"
     else:
-        status_umidade = "✅"
         if umidade < umid_min:
             status_umidade = "🔻 Baixa"
         elif umidade > umid_max:
             status_umidade = "🔺 Alta"
+        else:
+            status_umidade = "✅"
 
     resposta = (
         f"🌿 Vaso ID: {vase_id}\n"
+        f"🌱 Planta: {nome}\n"
         f"💧 Umidade atual: {umidade}% (Ideal: {umid_min}–{umid_max}%) {status_umidade}\n"
     )
 
     logging.debug(f"Info do vaso montada: {resposta.replace(chr(10), ' | ')}")
     return resposta
+
+def load_all_plant_names():
+    logging.debug("Carregando nomes de todas as plantas do banco de dados")
+    cursor.execute("SELECT name FROM plants")
+    rows = cursor.fetchall()
+    plant_names = [row[0] for row in rows]
+    logging.debug(f"Plantas carregadas: {plant_names}")
+    return plant_names
